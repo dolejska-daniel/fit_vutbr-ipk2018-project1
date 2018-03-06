@@ -224,6 +224,7 @@ int main(int argc, char **argv)
                     DEBUG_LOG("SRV-COMMS", "Making system command call...");
 					unsigned c_idx = 0;
 					unsigned r_idx = 0;
+					unsigned colon_idx = 256;
 					char results[4096][256];
 					char *result;
 					char c;
@@ -243,6 +244,7 @@ int main(int argc, char **argv)
 								
 								matches = 1;
 								c_idx = 0;
+								colon_idx = 256;
 							}
 							
 							continue;
@@ -250,14 +252,37 @@ int main(int argc, char **argv)
 						
 						results[r_idx][c_idx] = c;
 						//results[r_idx][c_idx + 1] = '\0';
-						
-						if (c_idx < strlen(search))
+						if (c == ':' && c_idx < colon_idx)
 						{
-							if (c != search[c_idx])
+							//	Označení indexu první dvojtečky (konec loginu)
+							colon_idx = c_idx;
+						}
+						
+						if (c_idx < colon_idx)
+						{
+							//	Aktuální znak je součástí tohoto loginu
+							if (c_idx >= strlen(search))
 							{
+								//	Aktuální znak je mimo vyhledávací řetězec
+								if (cmd_target > 1)
+								{
+									matches = 0;
+									continue;
+								}
+							}
+							else if (c != search[c_idx])
+							{
+								//	Aktuální znak již neshoduje
 								matches = 0;
 								continue;
 							}
+						}
+						else if (c_idx < strlen(search))
+						{
+							//	Aktuální znak není mimo vyhledávací řetězec
+							//	ale už není součástí loginu
+							matches = 0;
+							continue;
 						}
 						
 						c_idx++;
@@ -265,7 +290,7 @@ int main(int argc, char **argv)
 
 					DEBUG_LOG("SRV-COMMS", "Search completed!");
 
-					if (r_idx == 0)
+					if (r_idx == 0 || (r_idx > 1 && cmd_target > 1))
 					{
 						DEBUG_LOG("SRV-COMMS", "Search empty, sending special empty response!");
 						write_res = write(socket, "!empty", 7);
