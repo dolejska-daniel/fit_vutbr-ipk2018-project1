@@ -1,6 +1,6 @@
-
 # IPK project 1, 2018
 > Daniel Dolejška (xdolej08@stud.fit.vutbr.cz)
+
 
 # Obsah
 1. [Možnosti překladu](#moznosti-prekladu)
@@ -14,6 +14,8 @@
 		1. [Příklady použití](#priklady-pouziti)
 	2. [Server](#server)
 		1. [Speciální odpovědi](#specialni-odpovedi)
+6. [Popis protokolu](#popis-protokolu)
+
 
 # Možnosti překladu
 Níže jsou popsány možnosti překladu ať už za použití `make` či přímo `gcc`.
@@ -62,13 +64,16 @@ Návratové hodnoty programu a jejich význam:
   - **2** - Chyba při operaci `bind`
   - **3** - Chyba při operaci `listen`
 
+
 # Požadavky
 **Serverová část** programu vyžaduje pro správnou funkcionalitu práva čtení pro soubor `/etc/passwd`.
+
 
 # Omezení
 **Klient** vyžaduje zadání vyhledávacího řetězce bezprostředně za přepínače `-n`, `-f` či `-l`. Zároveň, pokud budou tyto přepínače umístěny na jiné místo, než na konec, dojde k chybnému zpracování přepínačů a téměř jistě bude program ukončen.
 
 **Server** dokáže obsloužit pouze jednoho klienta najednou. V případě více současných spojení, server nejdříve zpracuje požadavek prvního klienta v řadě a až pak se věnuje ostatním.
+
 
 # Implementace
 ## Klient
@@ -129,3 +134,11 @@ V případě, že je stream prázdný, odesílá server speciální odpověď `!
 V případě, že došlo k chybě při filtrování výsledků či jiné chybě, ať už v průběhu zpracování požadavku či při odesílání dat, odesílá server speciální odpověď `!err` následovanou textovým řetězcem popisující vzniklý problém, vzájemně oddělené znakem `\0`.
 
 V případě, že server již nemá další data, která by klientovi mohl odeslat, zasílá odpověď `!bye` a následně s klientem ukončuje spojení a začíná řešit následujícího klienta ve frontě.
+
+
+# Popis protokolu
+Po úspěšném zajištění TCP spojení klienta a serveru, odesílá klient řídící informace serveru jako textový řetězec. Server následně zpracuje řídící informace a buď odešle [chybovou zprávu](#specialni-odpovedi) a přejde k ukončení spojení, nebo začne zpracovávat soubor.
+
+Po vyfiltrování výsledků ze souboru je přepočítá - pokud je výsledek prázdný (nebyly nalezeni žádní uživatelé, vyhovující řídícím informacím) je odeslána [speciální odpověď](#specialni-odpovedi) indikující prázdný výsledek a přechází se k ukončení spojení. Pokud byly nějaké výsledky nalezeny, začnou se postupně odesílat. Po odeslání všech nalezených výsledků se přechází k ukončení spojení.
+
+Přenos dat, ať už se jedná o chybovou zprávu či skutečná data ze souboru, je zakončen odesláním posledních dat `!bye` serverem a následným ukončením spojení.
