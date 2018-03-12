@@ -99,7 +99,7 @@ xdolej08@merlin: ~/_VUT/IPK$
 ```
 _Zpráva zobrazená při neúspěšném vyhledávání je pro všechny přepínače stejná._
 
-**Přepínač `-f` (neúspěšné vyhledání)**
+**Přepínač `-f` (úspěšné vyhledání)**
 ```bash
 xdolej08@merlin: ~/_VUT/IPK$ ./ipk-client -h 127.0.0.1 -p 56789 -f xdolej08
 /homes/eva/xd/xdolej08
